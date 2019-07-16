@@ -1,0 +1,4 @@
+<?xml version="1.0"?>
+<launch>
+    <node name="agent_topics_handler_node" pkg="baxter_as_gps_ros_agent" type="agent_topics_handler_node.py" />
+</launch>

@@ -7,7 +7,7 @@ setup_args = generate_distutils_setup(
     packages=[
         'baxter_as_gps_ros_agent',
     ],
-    package_dir={'': 'src'}
+    package_dir={'': 'src'},
 )
 
 setup(**setup_args)
