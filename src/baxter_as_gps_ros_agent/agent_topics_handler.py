@@ -1,3 +1,5 @@
+import pdb
+
 import rospy
 
 # The original GPS package doesn't use catkin.
@@ -5,6 +7,17 @@ import rospy
 #   to import packages from gps_agent_pkg
 import roslib
 roslib.load_manifest('gps_agent_pkg')
+
+import os
+import gps_agent_pkg
+import sys
+sys.path.append(os.path.join(
+    os.sep.join(gps_agent_pkg.__path__[0].split(os.sep)[:-4]),
+    'python',
+))
+from gps.proto.gps_pb2 import JOINT_ANGLES, JOINT_VELOCITIES, \
+        END_EFFECTOR_POINTS, END_EFFECTOR_POINT_VELOCITIES, ACTION, \
+        TRIAL_ARM, AUXILIARY_ARM, JOINT_SPACE
 
 from gps_agent_pkg.msg import (
     TrialCommand, 
@@ -16,13 +29,24 @@ from gps_agent_pkg.msg import (
 
 class AgentTopicsHandler(object):
     def __init__(self):
-        pass
+        self.arms = {
+            TRIAL_ARM: None, 
+            AUXILIARY_ARM: None,
+        }
 
     def trial_command_callback(self, trial_command):
         rospy.logdebug('receive trial command: %s'%trial_command)
 
     def position_command_callback(self, position_command):
         rospy.logdebug('receive position command: %s'%position_command)
+
+        mode_id = position_command.mode
+        arm_id = position_command.arm
+        if mode_id == JOINT_SPACE:
+            joint_angles = position_command.data
+            self.arms[arm_id].move_to_joint_positions(joint_angles)
+        else:
+            raise Exception("mode %s unsupported yet"%mode)
 
     def relax_command_callback(self, relax_command):
         rospy.logdebug('receive relax command: %s'%relax_command)
