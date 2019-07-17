@@ -1,4 +1,8 @@
 <?xml version="1.0"?>
 <launch>
-    <node name="agent_topics_handler_node" pkg="baxter_as_gps_ros_agent" type="agent_topics_handler_node.py" />
+    <arg name="debug" default="true"/>
+    <arg if="$(arg debug)" name="python_launch_prefix" value="gnome-terminal -- python -m pdb "/>
+    <arg unless="$(arg debug)" name="python_launch_prefix" value=""/>
+
+    <node name="agent_topics_handler_node" pkg="baxter_as_gps_ros_agent" type="agent_topics_handler_node.py" launch-prefix="$(arg python_launch_prefix)" />
 </launch>
