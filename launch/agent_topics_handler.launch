@@ -1,8 +1,13 @@
 <?xml version="1.0"?>
 <launch>
     <arg name="debug" default="true"/>
-    <arg if="$(arg debug)" name="python_launch_prefix" value="gnome-terminal -- python -m pdb "/>
-    <arg unless="$(arg debug)" name="python_launch_prefix" value=""/>
+    <arg name="using_screen" default="false"/>
+    <arg name="using_gnome_terminal" default="false"/>
+
+    <arg unless="$(eval arg('debug'))" name="python_launch_prefix" value=""/>
+    <arg if="$(eval arg('debug') and arg('using_gnome_terminal'))" name="python_launch_prefix" value="gnome-terminal -- python -m pdb "/>
+    <arg if="$(eval arg('debug') and arg('using_screen'))" name="python_launch_prefix" value="screen python -m pdb "/>
+
 
     <node name="agent_topics_handler_node" pkg="baxter_as_gps_ros_agent" type="agent_topics_handler_node.py" launch-prefix="$(arg python_launch_prefix)" />
 </launch>
