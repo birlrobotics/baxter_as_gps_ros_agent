@@ -29,10 +29,7 @@ from gps_agent_pkg.msg import (
 
 class AgentTopicsHandler(object):
     def __init__(self):
-        self.arms = {
-            TRIAL_ARM: None, 
-            AUXILIARY_ARM: None,
-        }
+        pass
 
     def trial_command_callback(self, trial_command):
         rospy.logdebug('receive trial command: %s'%trial_command)
@@ -43,10 +40,13 @@ class AgentTopicsHandler(object):
         mode_id = position_command.mode
         arm_id = position_command.arm
         if mode_id == JOINT_SPACE:
+            joint_names = self.arms[arm_id].joint_names()
             joint_angles = position_command.data
-            self.arms[arm_id].move_to_joint_positions(joint_angles)
+            self.arms[arm_id].move_to_joint_positions(dict(zip(joint_names, joint_angles)))
         else:
             raise Exception("mode %s unsupported yet"%mode)
+
+        self.sample_result_pub.publish(SampleResult())
 
     def relax_command_callback(self, relax_command):
         rospy.logdebug('receive relax command: %s'%relax_command)
@@ -60,4 +60,19 @@ class AgentTopicsHandler(object):
         self.relax_command_sub = rospy.Subscriber("gps_controller_relax_command", RelaxCommand, self.relax_command_callback)
         self.data_request_sub = rospy.Subscriber("gps_controller_data_request", DataRequest, self.data_request_callback)
         self.sample_result_pub = rospy.Publisher("gps_controller_report", SampleResult, queue_size=None)
+
+    def setup_baxter(self):
+        import baxter_interface
+        from baxter_interface import CHECK_VERSION
+
+        rs = baxter_interface.RobotEnable(CHECK_VERSION)
+        rs.enable()
+        left_arm = baxter_interface.Limb('left')
+        right_arm = baxter_interface.Limb('right')
+
+        self.arms = {
+            TRIAL_ARM: right_arm, 
+            AUXILIARY_ARM: left_arm,
+        }
+
 
