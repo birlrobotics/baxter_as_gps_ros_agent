@@ -31,10 +31,17 @@ class AgentTopicsHandler(object):
     def __init__(self):
         pass
 
-    def trial_command_callback(self, trial_command):
-        rospy.logdebug('receive trial command: %s'%trial_command)
+    def _trial_command_callback(self, trial_command):
+        rospy.logdebug('receive trial command: %100s'%trial_command)
+        T = trial_command.T 
+        sample_frequency = trial_command.frequency
+        state_datatypes = trial_command.state_datatypes
+        observation_datatypes = trial_command.obs_datatypes
 
-    def position_command_callback(self, position_command):
+
+
+
+    def _position_command_callback(self, position_command):
         rospy.logdebug('receive position command: %s'%position_command)
 
         mode_id = position_command.mode
@@ -48,17 +55,17 @@ class AgentTopicsHandler(object):
 
         self.sample_result_pub.publish(SampleResult())
 
-    def relax_command_callback(self, relax_command):
+    def _relax_command_callback(self, relax_command):
         rospy.logdebug('receive relax command: %s'%relax_command)
 
-    def data_request_callback(self, data_request):
+    def _data_request_callback(self, data_request):
         rospy.logdebug('receive data request: %s'%data_request)
 
     def setup_subscriber_and_publisher(self):
-        self.trial_command_sub = rospy.Subscriber("gps_controller_trial_command", TrialCommand, self.trial_command_callback)
-        self.position_command_sub = rospy.Subscriber("gps_controller_position_command", PositionCommand, self.position_command_callback)
-        self.relax_command_sub = rospy.Subscriber("gps_controller_relax_command", RelaxCommand, self.relax_command_callback)
-        self.data_request_sub = rospy.Subscriber("gps_controller_data_request", DataRequest, self.data_request_callback)
+        self.trial_command_sub = rospy.Subscriber("gps_controller_trial_command", TrialCommand, self._trial_command_callback)
+        self.position_command_sub = rospy.Subscriber("gps_controller_position_command", PositionCommand, self._position_command_callback)
+        self.relax_command_sub = rospy.Subscriber("gps_controller_relax_command", RelaxCommand, self._relax_command_callback)
+        self.data_request_sub = rospy.Subscriber("gps_controller_data_request", DataRequest, self._data_request_callback)
         self.sample_result_pub = rospy.Publisher("gps_controller_report", SampleResult, queue_size=None)
 
     def setup_baxter(self):
@@ -74,5 +81,3 @@ class AgentTopicsHandler(object):
             TRIAL_ARM: right_arm, 
             AUXILIARY_ARM: left_arm,
         }
-
-

@@ -1,13 +1,25 @@
 cmake_minimum_required(VERSION 2.8.3)
 project(baxter_as_gps_ros_agent)
 
+
+
+include($ENV{ROS_ROOT}/core/rosbuild/rosbuild.cmake)
+rosbuild_find_ros_package(gps_agent_pkg)
+message("gps_agent_pkg_PACKAGE_PATH = ${gps_agent_pkg_PACKAGE_PATH}")
+
+set(gps_agent_pkg_DIR ${gps_agent_pkg_PACKAGE_PATH}/devel/share/gps_agent_pkg/cmake)
+
+set(CATKIN_WORKSPACES "${CATKIN_WORKSPACES};${gps_agent_pkg_PACKAGE_PATH}/devel")
+message("CATKIN_WORKSPACES = ${CATKIN_WORKSPACES}")
+
 ## Compile as C++11, supported in ROS Kinetic and newer
 # add_compile_options(-std=c++11)
 
 ## Find catkin macros and libraries
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
 ## is used, also find other catkin packages
-find_package(catkin REQUIRED)
+find_package(catkin REQUIRED COMPONENTS message_generation std_msgs gps_agent_pkg)
+
 
 ## System dependencies are found with CMake's conventions
 # find_package(Boost REQUIRED COMPONENTS system)
@@ -44,17 +56,15 @@ catkin_python_setup()
 
 ## Generate messages in the 'msg' folder
 # add_message_files(
-#   FILES
-#   Message1.msg
-#   Message2.msg
+#     DIRECTORY ${gps_agent_pkg_PACKAGE_PATH}/msg
+#     FILES SampleResult.msg
 # )
 
 ## Generate services in the 'srv' folder
-# add_service_files(
-#   FILES
-#   Service1.srv
-#   Service2.srv
-# )
+add_service_files(
+    FILES
+    RecordSensorsToRosbagThenReturnSample.srv
+)
 
 ## Generate actions in the 'action' folder
 # add_action_files(
@@ -64,10 +74,10 @@ catkin_python_setup()
 # )
 
 ## Generate added messages and services with any dependencies listed here
-# generate_messages(
-#   DEPENDENCIES
-#   std_msgs  # Or other packages containing msgs
-# )
+generate_messages(
+  DEPENDENCIES
+  std_msgs gps_agent_pkg
+)
 
 ################################################
 ## Declare ROS dynamic reconfigure parameters ##
@@ -101,7 +111,7 @@ catkin_python_setup()
 catkin_package(
 #  INCLUDE_DIRS include
 #  LIBRARIES baxter_as_gps_ros_agent
-#  CATKIN_DEPENDS other_catkin_pkg
+    CATKIN_DEPENDS message_runtime gps_agent_pkg
 #  DEPENDS system_lib
 )
 

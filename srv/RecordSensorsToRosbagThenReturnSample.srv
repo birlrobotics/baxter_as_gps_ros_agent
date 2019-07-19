@@ -1,0 +1,4 @@
+float64 frequency  # Controller frequency
+int8[] datatypes # Which data types to include in sampling
+---
+gps_agent_pkg/SampleResult sample_result
