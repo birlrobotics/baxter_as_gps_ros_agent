@@ -15,10 +15,7 @@ sys.path.append(os.path.join(
     os.sep.join(gps_agent_pkg.__path__[0].split(os.sep)[:-4]),
     'python',
 ))
-from gps.proto.gps_pb2 import JOINT_ANGLES, JOINT_VELOCITIES, \
-        END_EFFECTOR_POINTS, END_EFFECTOR_POINT_VELOCITIES, ACTION, \
-        TRIAL_ARM, AUXILIARY_ARM, JOINT_SPACE
-
+from gps.proto.gps_pb2 import ACTION, TRIAL_ARM, AUXILIARY_ARM, JOINT_SPACE
 from gps_agent_pkg.msg import (
     TrialCommand, 
     PositionCommand, 
@@ -26,6 +23,7 @@ from gps_agent_pkg.msg import (
     DataRequest, 
     SampleResult, 
 )
+from baxter_as_gps_ros_agent.srv import RecordSensorsToRosbagThenReturnSample, RecordSensorsToRosbagThenReturnSampleRequest, RecordSensorsToRosbagThenReturnSampleResponse
 
 class AgentTopicsHandler(object):
     def __init__(self):
@@ -38,6 +36,12 @@ class AgentTopicsHandler(object):
         state_datatypes = trial_command.state_datatypes
         observation_datatypes = trial_command.obs_datatypes
 
+        datatypes = list(set(state_datatypes+observation_datatypes+(ACTION,)))
+        req = RecordSensorsToRosbagThenReturnSampleRequest(
+            frequency=sample_frequency,
+            datatypes=datatypes,
+        )
+        resp = self.sampling_service.call(req)
 
 
 
@@ -61,12 +65,13 @@ class AgentTopicsHandler(object):
     def _data_request_callback(self, data_request):
         rospy.logdebug('receive data request: %s'%data_request)
 
-    def setup_subscriber_and_publisher(self):
+    def setup_subscriber_and_publisher_and_service(self):
         self.trial_command_sub = rospy.Subscriber("gps_controller_trial_command", TrialCommand, self._trial_command_callback)
         self.position_command_sub = rospy.Subscriber("gps_controller_position_command", PositionCommand, self._position_command_callback)
         self.relax_command_sub = rospy.Subscriber("gps_controller_relax_command", RelaxCommand, self._relax_command_callback)
         self.data_request_sub = rospy.Subscriber("gps_controller_data_request", DataRequest, self._data_request_callback)
         self.sample_result_pub = rospy.Publisher("gps_controller_report", SampleResult, queue_size=None)
+        self.sampling_service = rospy.ServiceProxy('/sampling_service_for_gps_baxter', RecordSensorsToRosbagThenReturnSample)
 
     def setup_baxter(self):
         import baxter_interface
