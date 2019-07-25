@@ -1,1 +1,2 @@
 from agent_topics_handler import AgentTopicsHandler
+from baxter_right_arm_end_point_jacobian_calculator import BaxterRightArmEndPointJacobianCalculator

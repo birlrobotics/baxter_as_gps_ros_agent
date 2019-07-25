@@ -64,6 +64,7 @@ catkin_python_setup()
 add_service_files(
     FILES
     RecordSensorsToRosbagThenReturnSample.srv
+    SetUpEndPointOffsetAndPublishEndPointJacobian.srv
 )
 
 ## Generate actions in the 'action' folder

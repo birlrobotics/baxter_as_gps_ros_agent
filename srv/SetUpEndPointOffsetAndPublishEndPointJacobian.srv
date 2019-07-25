@@ -1,0 +1,4 @@
+std_msgs/Float64MultiArray end_point_offset
+---
+std_msgs/Bool ok
+std_msgs/String debug_message
