@@ -1,4 +1,5 @@
-std_msgs/Float64MultiArray end_point_offset
+float64[] data
+uint32 num_of_end_points
 ---
 std_msgs/Bool ok
 std_msgs/String debug_message

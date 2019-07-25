@@ -15,12 +15,8 @@ if __name__ == '__main__':
     ])
 
     req = SetUpEndPointOffsetAndPublishEndPointJacobianRequest(
-        end_point_offset = Float64MultiArray(
-            data = end_point.flatten(),
-            layout = MultiArrayLayout(
-                dim=[MultiArrayDimension(size=i) for i in end_point.shape]
-            ),
-        )
+        data = end_point.flatten(),
+        num_of_end_points = end_point.shape[0]
     )
 
     print req

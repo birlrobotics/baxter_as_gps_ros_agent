@@ -55,10 +55,9 @@ catkin_python_setup()
 ##   * add every package in MSG_DEP_SET to generate_messages(DEPENDENCIES ...)
 
 ## Generate messages in the 'msg' folder
-# add_message_files(
-#     DIRECTORY ${gps_agent_pkg_PACKAGE_PATH}/msg
-#     FILES SampleResult.msg
-# )
+add_message_files(
+    FILES BaxterRightArmEndPointJacobian.msg
+)
 
 ## Generate services in the 'srv' folder
 add_service_files(
@@ -112,7 +111,7 @@ generate_messages(
 catkin_package(
 #  INCLUDE_DIRS include
 #  LIBRARIES baxter_as_gps_ros_agent
-    CATKIN_DEPENDS message_runtime gps_agent_pkg
+    CATKIN_DEPENDS message_runtime gps_agent_pkg std_msgs
 #  DEPENDS system_lib
 )
 

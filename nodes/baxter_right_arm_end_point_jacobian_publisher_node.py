@@ -4,6 +4,7 @@ from sensor_msgs.msg import JointState
 from operator import itemgetter
 from baxter_as_gps_ros_agent import BaxterRightArmEndPointJacobianCalculator
 from baxter_as_gps_ros_agent.srv import SetUpEndPointOffsetAndPublishEndPointJacobian, SetUpEndPointOffsetAndPublishEndPointJacobianRequest, SetUpEndPointOffsetAndPublishEndPointJacobianResponse
+from baxter_as_gps_ros_agent.msg import BaxterRightArmEndPointJacobian
 import numpy as np
 import pdb
 
@@ -18,26 +19,33 @@ angle_getter = itemgetter(*[all_joints.index(i) for i in target_joints])
 
 joint_state_sub = None
 end_point_offset = None
+jac_pub = None
 
 def topic_cb(msg):
-    global braepjc, end_point_offset
+    global braepjc, end_point_offset, jac_pub
     angles = angle_getter(msg.position)
     
     jac = braepjc.get_end_point_jacobian(dict(zip(target_joints, angles)), end_point_offset)
-    rospy.logdebug(jac)
+
+    jac_msg = BaxterRightArmEndPointJacobian(
+        header = msg.header,
+        data = jac.flatten(),
+        num_of_end_points=jac.shape[0],
+    )
+    jac_pub.publish(jac_msg)
 
 def service_cb(req):
     global joint_state_sub, end_point_offset
 
-    if len(req.end_point_offset.data) == 0:
+    if len(req.data) == 0:
         rospy.loginfo("turn off jacobian publishing")
         joint_state_sub.unregister()
         joint_state_sub = None
         end_point_offset = None
     else:
         rospy.loginfo("turn on jacobian publishing")
-        dim = [i.size for i in req.end_point_offset.layout.dim]
-        end_point_offset = np.array(req.end_point_offset.data).reshape(dim)
+        end_point_offset = np.array(req.data).reshape((req.num_of_end_points, 3))
+        rospy.logdebug('end_point_offset:')
         rospy.logdebug(end_point_offset)
         joint_state_sub = rospy.Subscriber('/robot/joint_states', JointState, topic_cb)
 
@@ -49,5 +57,7 @@ if __name__ == '__main__':
     server = rospy.Service('SetUpEndPointOffsetAndPublishEndPointJacobian', SetUpEndPointOffsetAndPublishEndPointJacobian, service_cb)
 
     braepjc = BaxterRightArmEndPointJacobianCalculator()
+
+    jac_pub = rospy.Publisher('/baxter_right_arm_end_point_jacobian', BaxterRightArmEndPointJacobian, queue_size=100)
 
     rospy.spin()
