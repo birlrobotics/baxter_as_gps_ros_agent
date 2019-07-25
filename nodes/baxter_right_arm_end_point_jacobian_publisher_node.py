@@ -17,20 +17,23 @@ angle_getter = itemgetter(*[all_joints.index(i) for i in target_joints])
 
 
 joint_state_sub = None
+end_point_offset = None
 
 def topic_cb(msg):
-    global braepjc, joint_state_sub
+    global braepjc, end_point_offset
     angles = angle_getter(msg.position)
-    jac = braepjc.get_end_point_jacobian(dict(zip(target_joints, angles)))
+    
+    jac = braepjc.get_end_point_jacobian(dict(zip(target_joints, angles)), end_point_offset)
     rospy.logdebug(jac)
 
 def service_cb(req):
-    global joint_state_sub
+    global joint_state_sub, end_point_offset
 
     if len(req.end_point_offset.data) == 0:
         rospy.loginfo("turn off jacobian publishing")
         joint_state_sub.unregister()
         joint_state_sub = None
+        end_point_offset = None
     else:
         rospy.loginfo("turn on jacobian publishing")
         dim = [i.size for i in req.end_point_offset.layout.dim]
