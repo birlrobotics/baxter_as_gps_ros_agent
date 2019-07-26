@@ -40,10 +40,20 @@ class JointBasedEndPointRelatedValuesCalculator(object):
         for i in self.values_to_calculate:
             if i == END_EFFECTOR_POINTS:
                 self._calculate_offset_point_xyz()
-            elif i == END_EFFECTOR_POSITIONS:
+            elif i == END_EFFECTOR_POSITIONS or i == END_EFFECTOR_ROTATIONS:
                 self._calculate_end_effector_xyz_and_rotmat()
             elif i == END_EFFECTOR_POINT_VELOCITIES:
                 self._calculate_offset_point_linear_velocity()
+            elif i == END_EFFECTOR_JACOBIANS:
+                self._calculate_end_effector_jacobian()
+            elif i == END_EFFECTOR_POINT_ROT_JACOBIANS:
+                self._calculate_offset_point_rot_jac()
+            elif i == END_EFFECTOR_POINT_JACOBIANS:
+                self._calculate_offset_point_vel_jac()
+            else:
+                raise Exception('type not supported yet')
+        return self.value_store
+    
             
     def _calculate_end_effector_xyz_and_rotmat(self):
         if self.value_store.get(END_EFFECTOR_POSITIONS, None) is not None\
@@ -64,16 +74,17 @@ class JointBasedEndPointRelatedValuesCalculator(object):
         self.value_store[END_EFFECTOR_ROTATIONS] = rotmat
 
     def _calculate_offset_point_xyz(self):
+        if self.value_store.get(END_EFFECTOR_POINTS, None) is not None:
+            return
+
         if self.end_point_offset is None:
             raise Exception("self.end_point_offset needed but not found")
 
-        if self.value_store.get(END_EFFECTOR_POINTS, None) is not None:
-            return
         self._calculate_end_effector_xyz_and_rotmat()
 
         num_of_points = self.end_point_offset.shape[1]
         end_point_xyz = np.tile(
-            self.value_store[END_EFFECTOR_POSITIONS].copy(), 
+            self.value_store[END_EFFECTOR_POSITIONS], 
             (1, num_of_points)
         )
         end_point_xyz += np.dot(
@@ -106,17 +117,17 @@ class JointBasedEndPointRelatedValuesCalculator(object):
         self.value_store[TMP_END_EFFECTOR_ANGULAR_VEL] = angular_vel 
 
     def _calculate_offset_point_linear_velocity(self):
-        if self.end_point_offset is None:
-            raise Exception("self.end_point_offset needed but not found")
-
         if self.value_store.get(END_EFFECTOR_POINT_VELOCITIES, None) is not None:
             return
+
+        if self.end_point_offset is None:
+            raise Exception("self.end_point_offset needed but not found")
 
         self._calculate_end_effector_linear_and_angular_velocity()
 
         num_of_points = self.end_point_offset.shape[1]
         end_point_lin_vel = np.tile(
-            self.value_store[TMP_END_EFFECTOR_LINEAR_VEL].copy(), 
+            self.value_store[TMP_END_EFFECTOR_LINEAR_VEL], 
             (1, num_of_points)
         )
 
@@ -129,4 +140,56 @@ class JointBasedEndPointRelatedValuesCalculator(object):
             axisa=0, axisb=0, axisc=0,
         )
 
-        pdb.set_trace()
+    def _calculate_end_effector_jacobian(self):
+        if self.value_store.get(END_EFFECTOR_JACOBIANS, None) is not None:
+            return
+        kdl_jac = PyKDL.Jacobian(7)
+        kdl_array = kdl_util.array_to_kdl_JntArray(self.joint_angles)
+        self.bk._jac_kdl.JntToJac(kdl_array, kdl_jac)
+        jac = self.bk.kdl_to_mat(kdl_jac)
+        self.value_store[END_EFFECTOR_JACOBIANS] = jac
+
+    def _calculate_offset_point_rot_jac(self):
+        if self.value_store.get(END_EFFECTOR_POINT_ROT_JACOBIANS, None) is not None:
+            return
+
+        self._calculate_end_effector_jacobian()
+
+        num_of_points = self.end_point_offset.shape[1]
+
+        rot_jac = np.tile(
+            self.value_store[END_EFFECTOR_JACOBIANS][3:, :],
+            (num_of_points,1),
+        )
+
+        self.value_store[END_EFFECTOR_POINT_ROT_JACOBIANS] = rot_jac
+
+    def _calculate_offset_point_vel_jac(self):
+        if self.value_store.get(END_EFFECTOR_POINT_JACOBIANS, None) is not None:
+            return
+
+        if self.end_point_offset is None:
+            raise Exception("self.end_point_offset needed but not found")
+
+        self._calculate_end_effector_jacobian()
+        self._calculate_offset_point_rot_jac()
+        self._calculate_end_effector_xyz_and_rotmat()
+
+        num_of_points = self.end_point_offset.shape[1]
+
+        vel_jac = np.tile(
+            self.value_store[END_EFFECTOR_JACOBIANS][:3, :],
+            (num_of_points,1),
+        )
+        rot_jac = self.value_store[END_EFFECTOR_POINT_ROT_JACOBIANS]
+
+        rotmat = self.value_store[END_EFFECTOR_ROTATIONS]
+
+        for i in range(num_of_points):
+            vel_jac[3*i:3*i+3, :] += np.cross(
+                rot_jac[3*i:3*i+3, :],
+                np.dot(rotmat, self.end_point_offset[:, i]),
+                axisa=0, axisb=0, axisc=0,
+            )
+
+        self.value_store[END_EFFECTOR_POINT_JACOBIANS] = vel_jac
