@@ -15,7 +15,19 @@ sys.path.append(os.path.join(
     os.sep.join(gps_agent_pkg.__path__[0].split(os.sep)[:-4]),
     'python',
 ))
-from gps.proto.gps_pb2 import ACTION, TRIAL_ARM, AUXILIARY_ARM, JOINT_SPACE
+from gps.proto.gps_pb2 import (
+    ACTION, TRIAL_ARM, AUXILIARY_ARM, JOINT_SPACE,
+    JOINT_ANGLES,
+    JOINT_VELOCITIES,
+    END_EFFECTOR_POINTS,
+    END_EFFECTOR_POINT_VELOCITIES,
+    END_EFFECTOR_POINT_JACOBIANS,
+    END_EFFECTOR_POINT_ROT_JACOBIANS,
+    END_EFFECTOR_POSITIONS,
+    END_EFFECTOR_ROTATIONS,
+    END_EFFECTOR_JACOBIANS,
+)
+
 from gps_agent_pkg.msg import (
     TrialCommand, 
     PositionCommand, 
@@ -32,17 +44,35 @@ class AgentTopicsHandler(object):
     def _trial_command_callback(self, trial_command):
         rospy.logdebug('receive trial command: %100s'%trial_command)
         T = trial_command.T 
-        sample_frequency = trial_command.frequency
         state_datatypes = trial_command.state_datatypes
         observation_datatypes = trial_command.obs_datatypes
 
-        datatypes = list(set(state_datatypes+observation_datatypes+(ACTION,)))
+        s = set(state_datatypes+observation_datatypes)
+        s.add(ACTION)
+        s.add(JOINT_ANGLES)
+        s.add(JOINT_VELOCITIES)
+        s.add(END_EFFECTOR_POINTS)
+        s.add(END_EFFECTOR_POINT_VELOCITIES)
+        s.add(END_EFFECTOR_POINT_JACOBIANS)
+        s.add(END_EFFECTOR_POINT_ROT_JACOBIANS)
+        s.add(END_EFFECTOR_POSITIONS)
+        s.add(END_EFFECTOR_ROTATIONS)
+        s.add(END_EFFECTOR_JACOBIANS)
+        sample_datatypes = list(s)
         req = RecordSensorsToRosbagThenReturnSampleRequest(
-            frequency=sample_frequency,
-            datatypes=datatypes,
+            frequency=trial_command.frequency,
+            datatypes=sample_datatypes,
+            ee_points=trial_command.ee_points,
+            ee_points_tgt=trial_command.ee_points_tgt,
         )
         resp = self.sampling_service.call(req)
 
+        rospy.sleep(3)
+
+        req = RecordSensorsToRosbagThenReturnSampleRequest()
+        resp = self.sampling_service.call(req)
+        
+        pdb.set_trace() 
 
 
     def _position_command_callback(self, position_command):

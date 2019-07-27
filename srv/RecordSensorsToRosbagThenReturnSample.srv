@@ -1,4 +1,6 @@
 float64 frequency  # Controller frequency
 int8[] datatypes # Which data types to include in sampling
+float64[] ee_points
+float64[] ee_points_tgt
 ---
 gps_agent_pkg/SampleResult sample_result

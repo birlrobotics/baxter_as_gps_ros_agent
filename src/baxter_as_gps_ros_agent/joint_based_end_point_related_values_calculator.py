@@ -1,4 +1,6 @@
 from gps.proto.gps_pb2 import (
+    JOINT_ANGLES,
+    JOINT_VELOCITIES,
     END_EFFECTOR_POINTS,
     END_EFFECTOR_POINT_VELOCITIES,
     END_EFFECTOR_POINT_JACOBIANS,
@@ -33,6 +35,15 @@ class JointBasedEndPointRelatedValuesCalculator(object):
         self.target_end_point = target_end_point
         self.bk = baxter_pykdl.baxter_kinematics('right')
 
+    def _final_touch_so_to_meet_gps_convention(self, d):
+        datatypes_to_flatten = [END_EFFECTOR_POINTS, END_EFFECTOR_POSITIONS, END_EFFECTOR_POINT_VELOCITIES]
+        for i in datatypes_to_flatten:
+            if i in d:
+                tmp = d[i]
+                d[i] = np.asarray(tmp.T).flatten()
+
+        return d
+
     def get_calculation_result(self, joint_angles, joint_velocities):
         self.joint_angles = joint_angles
         self.joint_velocities = joint_velocities
@@ -50,9 +61,16 @@ class JointBasedEndPointRelatedValuesCalculator(object):
                 self._calculate_offset_point_rot_jac()
             elif i == END_EFFECTOR_POINT_JACOBIANS:
                 self._calculate_offset_point_vel_jac()
+            elif i == JOINT_ANGLES:
+                self.value_store[JOINT_ANGLES] = joint_angles
+            elif i == JOINT_VELOCITIES:
+                self.value_store[JOINT_VELOCITIES] = joint_velocities 
             else:
                 raise Exception('type not supported yet')
-        return self.value_store
+
+        return self._final_touch_so_to_meet_gps_convention(
+            {k:self.value_store[k] for k in self.values_to_calculate}
+        )
     
             
     def _calculate_end_effector_xyz_and_rotmat(self):
@@ -80,6 +98,9 @@ class JointBasedEndPointRelatedValuesCalculator(object):
         if self.end_point_offset is None:
             raise Exception("self.end_point_offset needed but not found")
 
+        if self.target_end_point is None:
+            raise Exception("self.target_end_point needed but not found")
+
         self._calculate_end_effector_xyz_and_rotmat()
 
         num_of_points = self.end_point_offset.shape[1]
@@ -91,6 +112,8 @@ class JointBasedEndPointRelatedValuesCalculator(object):
             self.value_store[END_EFFECTOR_ROTATIONS], 
             self.end_point_offset
         )
+
+        end_point_xyz -= self.target_end_point
 
         self.value_store[END_EFFECTOR_POINTS] = end_point_xyz
 
@@ -139,6 +162,8 @@ class JointBasedEndPointRelatedValuesCalculator(object):
             ),
             axisa=0, axisb=0, axisc=0,
         )
+
+        self.value_store[END_EFFECTOR_POINT_VELOCITIES] = end_point_lin_vel
 
     def _calculate_end_effector_jacobian(self):
         if self.value_store.get(END_EFFECTOR_JACOBIANS, None) is not None:
