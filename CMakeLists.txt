@@ -63,7 +63,6 @@ add_message_files(
 add_service_files(
     FILES
     RecordSensorsToRosbagThenReturnSample.srv
-    SetUpEndPointOffsetAndPublishEndPointJacobian.srv
 )
 
 ## Generate actions in the 'action' folder
