@@ -1,12 +1,12 @@
 #!/usr/bin/env python
 import rospy
 from baxter_as_gps_ros_agent.srv import RecordSensorsToRosbagThenReturnSample, RecordSensorsToRosbagThenReturnSampleRequest, RecordSensorsToRosbagThenReturnSampleResponse
-import argparse
 import pdb
-import imp
 from baxter_as_gps_ros_agent import RosbagProc
 import tempfile
 import numpy as np
+import sys
+import baxter_as_gps_ros_agent.util as util
 
 rosbag_proc = None
 rosbag_path = None
@@ -15,6 +15,10 @@ saved_req = None
 def cb(req):
     global rosbag_proc, rosbag_path, saved_req
     if len(req.datatypes) != 0:
+        if rosbag_proc is not None:
+            rosbag_proc.stop()
+            rospy.sleep(1)
+
         saved_req = req
         # start recording
         rospy.logdebug("req: %s"%req)
@@ -62,11 +66,7 @@ def cb(req):
         
 
 if __name__ == '__main__':
-    parser = argparse.ArgumentParser() 
-    parser.add_argument("config", type=str, help='path to config file')
-
-    args = parser.parse_args()
-    config = imp.load_source('config', args.config)
+    config = util.get_config()
 
     rospy.init_node('sampling_service_service_node', log_level=rospy.DEBUG)
     server = rospy.Service('/sampling_service_for_gps_baxter', RecordSensorsToRosbagThenReturnSample, cb)

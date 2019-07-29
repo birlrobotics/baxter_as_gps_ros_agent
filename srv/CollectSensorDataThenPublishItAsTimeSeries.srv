@@ -2,5 +2,6 @@ float64 frequency
 int8[] datatypes 
 float64[] ee_points
 float64[] ee_points_tgt
+string time_series_topic_name
 ---
-gps_agent_pkg/SampleResult sample_result
+uint64[] time_series_remapping

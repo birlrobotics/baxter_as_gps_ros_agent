@@ -26,6 +26,7 @@ from gps.proto.gps_pb2 import (
     END_EFFECTOR_POSITIONS,
     END_EFFECTOR_ROTATIONS,
     END_EFFECTOR_JACOBIANS,
+    LIN_GAUSS_CONTROLLER,
 )
 
 from gps_agent_pkg.msg import (
@@ -36,6 +37,7 @@ from gps_agent_pkg.msg import (
     SampleResult, 
 )
 from baxter_as_gps_ros_agent.srv import RecordSensorsToRosbagThenReturnSample, RecordSensorsToRosbagThenReturnSampleRequest, RecordSensorsToRosbagThenReturnSampleResponse
+from baxter_as_gps_ros_agent.srv import CollectSensorDataThenPublishItAsTimeSeries, CollectSensorDataThenPublishItAsTimeSeriesRequest, CollectSensorDataThenPublishItAsTimeSeriesResponse
 
 class AgentTopicsHandler(object):
     def __init__(self):
@@ -46,6 +48,7 @@ class AgentTopicsHandler(object):
         T = trial_command.T 
         state_datatypes = trial_command.state_datatypes
         observation_datatypes = trial_command.obs_datatypes
+        controller_type = trial_command.controller.controller_to_execute
 
         s = set(state_datatypes+observation_datatypes)
         s.add(ACTION)
@@ -67,13 +70,38 @@ class AgentTopicsHandler(object):
         )
         resp = self.sampling_service.call(req)
 
-        rospy.sleep(3)
 
+        if controller_type == LIN_GAUSS_CONTROLLER:
+            sensor_datatypes = state_datatypes
+            time_series_topic_name = 'time_series_state_x'
+        else:
+            sensor_datatypes = observation_datatypes
+            time_series_topic_name = 'time_series_obs_o'
+
+        req = CollectSensorDataThenPublishItAsTimeSeriesRequest(
+            frequency=trial_command.frequency,
+            datatypes=sensor_datatypes,
+            ee_points=trial_command.ee_points,
+            ee_points_tgt=trial_command.ee_points_tgt,
+            time_series_topic_name=time_series_topic_name,
+        ) 
+        self.sensor_data_time_series_publishing_service(req)
+
+
+        rospy.sleep(10)
+
+        # stop sampling
         req = RecordSensorsToRosbagThenReturnSampleRequest()
         resp = self.sampling_service.call(req)
         
-        pdb.set_trace() 
+        sample_result = resp.sample_result
+        self.sample_result_pub.publish(sample_result)
 
+        # stop sensor data publishing
+        req = CollectSensorDataThenPublishItAsTimeSeriesRequest()
+        resp = self.sensor_data_time_series_publishing_service(req)
+
+        pdb.set_trace()
 
     def _position_command_callback(self, position_command):
         rospy.logdebug('receive position command: %s'%position_command)
@@ -102,6 +130,7 @@ class AgentTopicsHandler(object):
         self.data_request_sub = rospy.Subscriber("gps_controller_data_request", DataRequest, self._data_request_callback)
         self.sample_result_pub = rospy.Publisher("gps_controller_report", SampleResult, queue_size=None)
         self.sampling_service = rospy.ServiceProxy('/sampling_service_for_gps_baxter', RecordSensorsToRosbagThenReturnSample)
+        self.sensor_data_time_series_publishing_service= rospy.ServiceProxy('CollectSensorDataThenPublishItAsTimeSeries_service', CollectSensorDataThenPublishItAsTimeSeries)
 
     def setup_baxter(self):
         import baxter_interface

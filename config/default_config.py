@@ -60,6 +60,29 @@ def get_topic_names_that_will_be_recorded_into_rosbag(datatypes):
     return list(topics)
 
 
+def get_RosTopicFilteringScheme_and_time_series_remapping_array(datatypes, frequency, offset_points, target_points):
+    tfc = RosTopicFilteringScheme(resampling_rate=frequency)
+    joint_based_datatypes = [i for i in datatypes if i in JOINT_BASED_DATATYPES]
+    joint_based_datatypes_size, joint_based_datatypes_shape = _setup_joint_based_datatype_filter(tfc, joint_based_datatypes, offset_points, target_points)
+    other_datatypes = [i for i in datatypes if i not in JOINT_BASED_DATATYPES]
+    other_datatypes_size, other_datatypes_shape = _setup_other_datatype_filter(tfc, other_datatypes)
+
+    datatypes_of_new_order = joint_based_datatypes+other_datatypes
+    datatypes_size_of_new_order = joint_based_datatypes_size+other_datatypes_size
+    datatypes_end_idx_of_new_order = np.cumsum(datatypes_size_of_new_order)
+
+    remapping_array = []
+    
+    for dtype in datatypes:
+        dtype_idx_in_new_order = datatypes_of_new_order.index(dtype)
+
+        end_idx = datatypes_end_idx_of_new_order[dtype_idx_in_new_order]
+        start_idx = end_idx-datatypes_size_of_new_order[dtype_idx_in_new_order]
+        remapping_array += range(start_idx, end_idx)
+        
+    return tfc, remapping_array
+
+
 
 def process_rosbag_to_SampleResult(rosbag_path, datatypes, frequency, offset_points, target_points):
     assert(offset_points.shape[0] == 3)
@@ -70,14 +93,14 @@ def process_rosbag_to_SampleResult(rosbag_path, datatypes, frequency, offset_poi
 
     tfc = RosTopicFilteringScheme(resampling_rate=frequency)
     
-    joint_based_datatypes = np.array([i for i in datatypes if i in JOINT_BASED_DATATYPES])
+    joint_based_datatypes = [i for i in datatypes if i in JOINT_BASED_DATATYPES]
     joint_based_datatypes_size, joint_based_datatypes_shape = _setup_joint_based_datatype_filter(tfc, joint_based_datatypes, offset_points, target_points)
 
-    other_datatypes = np.array([i for i in datatypes if i not in JOINT_BASED_DATATYPES])
+    other_datatypes = [i for i in datatypes if i not in JOINT_BASED_DATATYPES]
     other_datatypes_size, other_datatypes_shape = _setup_other_datatype_filter(tfc, other_datatypes)
 
     # re-order datatypes so that they match with the order of filtering
-    datatypes = np.concatenate([joint_based_datatypes, other_datatypes])
+    datatypes = joint_based_datatypes+other_datatypes
     datatypes_size = joint_based_datatypes_size+other_datatypes_size
     datatypes_shape = joint_based_datatypes_shape+other_datatypes_shape
 
