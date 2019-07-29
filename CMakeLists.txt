@@ -64,6 +64,7 @@ add_service_files(
     FILES
     RecordSensorsToRosbagThenReturnSample.srv
     CollectSensorDataThenPublishItAsTimeSeries.srv
+    SetupControllerAndRolloutOneEpisode.srv
 )
 
 ## Generate actions in the 'action' folder

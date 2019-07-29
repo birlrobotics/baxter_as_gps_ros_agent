@@ -34,6 +34,7 @@ from baxter_as_gps_ros_agent.msg import BaxterRightArmAction
 import numpy as np
 from operator import itemgetter
 from gps_agent_pkg.msg import SampleResult
+from baxter_as_gps_ros_agent import CONSTANT
 
 JOINT_BASED_DATATYPES = set([
     JOINT_ANGLES,
@@ -54,7 +55,7 @@ def get_topic_names_that_will_be_recorded_into_rosbag(datatypes):
         if i in JOINT_BASED_DATATYPES:        
             topics.add('/robot/joint_states')
         elif i == ACTION:
-            topics.add("/baxter_right_arm_torque_action")
+            topics.add(CONSTANT.action_topic)
         else:
             raise Exception('datatype not supported yet')
     return list(topics)

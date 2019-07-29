@@ -38,6 +38,8 @@ from gps_agent_pkg.msg import (
 )
 from baxter_as_gps_ros_agent.srv import RecordSensorsToRosbagThenReturnSample, RecordSensorsToRosbagThenReturnSampleRequest, RecordSensorsToRosbagThenReturnSampleResponse
 from baxter_as_gps_ros_agent.srv import CollectSensorDataThenPublishItAsTimeSeries, CollectSensorDataThenPublishItAsTimeSeriesRequest, CollectSensorDataThenPublishItAsTimeSeriesResponse
+from baxter_as_gps_ros_agent.srv import SetupControllerAndRolloutOneEpisode, SetupControllerAndRolloutOneEpisodeRequest, SetupControllerAndRolloutOneEpisodeResponse
+from baxter_as_gps_ros_agent import CONSTANT
 
 class AgentTopicsHandler(object):
     def __init__(self):
@@ -45,7 +47,6 @@ class AgentTopicsHandler(object):
 
     def _trial_command_callback(self, trial_command):
         rospy.logdebug('receive trial command: %100s'%trial_command)
-        T = trial_command.T 
         state_datatypes = trial_command.state_datatypes
         observation_datatypes = trial_command.obs_datatypes
         controller_type = trial_command.controller.controller_to_execute
@@ -85,10 +86,20 @@ class AgentTopicsHandler(object):
             ee_points_tgt=trial_command.ee_points_tgt,
             time_series_topic_name=time_series_topic_name,
         ) 
-        self.sensor_data_time_series_publishing_service(req)
+        resp = self.sensor_data_time_series_publishing_service(req)
 
+        time_series_remapping = resp.time_series_remapping
 
-        rospy.sleep(10)
+        req = SetupControllerAndRolloutOneEpisodeRequest(
+            time_series_remapping=time_series_remapping,
+            controller=trial_command.controller,
+            frequency=trial_command.frequency,
+            T=trial_command.T,
+            publish_action_to_this_topic=CONSTANT.action_topic,
+            sensor_time_series_topic = time_series_topic_name,
+        )
+        resp = self.make_action_and_rollout_one_episode_service.call(req)
+
 
         # stop sampling
         req = RecordSensorsToRosbagThenReturnSampleRequest()
@@ -131,6 +142,7 @@ class AgentTopicsHandler(object):
         self.sample_result_pub = rospy.Publisher("gps_controller_report", SampleResult, queue_size=None)
         self.sampling_service = rospy.ServiceProxy('/sampling_service_for_gps_baxter', RecordSensorsToRosbagThenReturnSample)
         self.sensor_data_time_series_publishing_service= rospy.ServiceProxy('CollectSensorDataThenPublishItAsTimeSeries_service', CollectSensorDataThenPublishItAsTimeSeries)
+        self.make_action_and_rollout_one_episode_service = rospy.ServiceProxy("SetupControllerAndRolloutOneEpisode_service", SetupControllerAndRolloutOneEpisode)
 
     def setup_baxter(self):
         import baxter_interface

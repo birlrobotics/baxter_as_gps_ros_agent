@@ -1,0 +1,9 @@
+gps_agent_pkg/ControllerParams controller
+float64 frequency  
+int32 T 
+string publish_action_to_this_topic
+string sensor_time_series_topic
+uint64[] time_series_remapping
+---
+float64 episode_start_time_in_sec
+float64 episode_end_time_in_sec
