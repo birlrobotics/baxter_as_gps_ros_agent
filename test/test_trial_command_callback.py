@@ -22,6 +22,9 @@ from gps.proto.gps_pb2 import JOINT_ANGLES, JOINT_VELOCITIES, \
         END_EFFECTOR_POINTS, END_EFFECTOR_POINT_VELOCITIES, ACTION, \
         TRIAL_ARM, AUXILIARY_ARM, JOINT_SPACE
 import numpy as np
+import pickle
+import pdb
+import os
 
 if __name__ == '__main__':
     rospy.init_node('test_trial_command_callback')
@@ -37,7 +40,14 @@ if __name__ == '__main__':
         [0.1, 0.2, 0.3],
         [-0.1, -0.2, -0.3],
     ])
+    with open(
+        os.path.join(
+            os.path.dirname(os.path.realpath(__file__)), 'trial_commnd_msg.pkl'
+        ),
+        'rb') as f:
+        saved_trial_command_msg = pickle.load(f)
 
+    '''
     msg = TrialCommand(
         T=100,
         frequency=20,
@@ -46,6 +56,8 @@ if __name__ == '__main__':
         ee_points=end_point.flatten(),
         ee_points_tgt=end_point_tgt.flatten(),
     )
+    '''
+    msg = saved_trial_command_msg
 
     rospy.sleep(1)
     pub.publish(msg)
