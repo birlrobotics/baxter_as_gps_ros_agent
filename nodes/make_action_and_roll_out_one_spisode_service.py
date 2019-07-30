@@ -9,6 +9,8 @@ from baxter_as_gps_ros_agent.msg import BaxterRightArmAction
 from threading import Event
 from gps.proto.gps_pb2 import LIN_GAUSS_CONTROLLER
 from baxter_as_gps_ros_agent import LinearGaussianActionCalculator
+import baxter_interface
+from baxter_interface import CHECK_VERSION
 
 event_start_new_episode = Event()
 event_episode_is_done = Event()
@@ -90,7 +92,7 @@ def topic_cb(msg):
 
     episode_step = int(time_lapsed*control_frequency)
     action = action_calculator.get_action(episode_step, input_vector)
-    rospy.logdebug(action)
+    baxter_right_arm.set_joint_torques(dict(zip(baxter_right_arm.joint_names(), action.flatten())))
     action_pub.publish(BaxterRightArmAction(
             header=msg.header,
             action=action.flatten(),
@@ -98,6 +100,12 @@ def topic_cb(msg):
 
 if __name__ == '__main__':
     rospy.init_node('make_action_and_rollout_one_episode_service_node', log_level=rospy.DEBUG)
+
+    # setup baxter right arm
+    rs = baxter_interface.RobotEnable(CHECK_VERSION)
+    rs.enable()
+    baxter_right_arm = baxter_interface.Limb('right')
+
     server = rospy.Service('SetupControllerAndRolloutOneEpisode_service', SetupControllerAndRolloutOneEpisode, cb)
 
     rate = rospy.Rate(1)
