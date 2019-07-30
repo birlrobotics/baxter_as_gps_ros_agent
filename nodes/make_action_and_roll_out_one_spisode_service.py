@@ -7,7 +7,8 @@ import numpy as np
 from rostopics_to_timeseries.msg import Timeseries
 from baxter_as_gps_ros_agent.msg import BaxterRightArmAction
 from threading import Event
-
+from gps.proto.gps_pb2 import LIN_GAUSS_CONTROLLER
+from baxter_as_gps_ros_agent import LinearGaussianActionCalculator
 
 event_start_new_episode = Event()
 event_episode_is_done = Event()
@@ -19,9 +20,26 @@ sensor_time_series_topic = None
 
 sensor_time_series_sub = None
 action_pub = None
+action_calculator = None
+control_frequency = None
+time_series_remapping = None
 
 def cb(req):
-    global event_start_new_episode, event_episode_is_done, start_time_in_sec, end_time_in_sec, duration_in_sec, publish_action_to_this_topic, sensor_time_series_topic 
+    global event_start_new_episode, event_episode_is_done, start_time_in_sec, end_time_in_sec, duration_in_sec, publish_action_to_this_topic, sensor_time_series_topic, action_calculator, control_frequency, time_series_remapping
+
+    control_frequency = req.frequency
+    time_series_remapping = req.time_series_remapping
+
+    controller_type = req.controller.controller_to_execute
+    if controller_type == LIN_GAUSS_CONTROLLER:
+        T = req.T
+        dim_of_u = req.controller.lingauss.dU
+        dim_of_x = req.controller.lingauss.dX
+        K = np.array(req.controller.lingauss.K_t).reshape((T, dim_of_u, dim_of_x))
+        k = np.array(req.controller.lingauss.k_t).reshape((T, dim_of_u, 1))
+        action_calculator = LinearGaussianActionCalculator(K, k)
+    else:
+        raise Exception('controller type %s not supported yet'%controller_type)
 
 
     event_episode_is_done.clear()
@@ -42,25 +60,40 @@ def cb(req):
     event_episode_is_done.clear()
     rospy.loginfo('episode finish')
     
-    return SetupControllerAndRolloutOneEpisodeResponse()
+    return SetupControllerAndRolloutOneEpisodeResponse(
+        episode_start_time_in_sec=start_time_in_sec,
+        episode_end_time_in_sec=end_time_in_sec,     
+    )
 
 def topic_cb(msg):
-    global event_episode_is_done, start_time_in_sec, end_time_in_sec, duration_in_sec, sensor_time_series_sub, action_pub
+    global event_episode_is_done, start_time_in_sec, end_time_in_sec, duration_in_sec, sensor_time_series_sub, action_pub, action_calculator, control_frequency, time_series_remapping
+
+
 
 
     now_time_in_sec = msg.header.stamp.to_sec()
     if start_time_in_sec is None:
         start_time_in_sec = now_time_in_sec
-    elif now_time_in_sec-start_time_in_sec > duration_in_sec:
-        sensor_time_series_sub.unregister()
-        end_time_in_sec = now_time_in_sec 
-        event_episode_is_done.set()
-        return
+        time_lapsed = 0
+    else:
+        time_lapsed = now_time_in_sec-start_time_in_sec
+        if time_lapsed >= duration_in_sec:
+            sensor_time_series_sub.unregister()
+            end_time_in_sec = now_time_in_sec 
+            event_episode_is_done.set()
+            return
 
-    action = [0,0,0,0,0,0,0]
+    input_length = len(msg.sample)
+    input_vector = np.zeros((input_length, 1))
+    for i in range(input_length):
+        input_vector[i][0] = msg.sample[time_series_remapping[i]]
+
+    episode_step = int(time_lapsed*control_frequency)
+    action = action_calculator.get_action(episode_step, input_vector)
+    rospy.logdebug(action)
     action_pub.publish(BaxterRightArmAction(
             header=msg.header,
-            action=action,
+            action=action.flatten(),
     ))
 
 if __name__ == '__main__':

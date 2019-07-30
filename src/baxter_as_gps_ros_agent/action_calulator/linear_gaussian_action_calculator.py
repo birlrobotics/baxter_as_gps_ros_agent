@@ -3,6 +3,7 @@ import numpy as np
 
 class LinearGaussianActionCalculator(BaseActionCalculator):
     def __init__(self, K, k, nominal_x=None, nominal_u=None):
+        super(LinearGaussianActionCalculator, self).__init__()
 
         episode_length, dim_of_u, dim_of_x = K.shape
 

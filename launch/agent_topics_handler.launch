@@ -2,9 +2,9 @@
 <launch>
     <arg name="python_launch_prefix" default=""/>
     <arg name="config_py"/>
-    <!--
-        <node name="agent_topics_handler_node" pkg="baxter_as_gps_ros_agent" type="agent_topics_handler_node.py" launch-prefix="$(arg python_launch_prefix)" />
-    -->
+    
+    <node output='screen' name="agent_topics_handler_node" pkg="baxter_as_gps_ros_agent" type="agent_topics_handler_node.py" launch-prefix="$(arg python_launch_prefix)" />
+    <node output='screen' name="make_action_and_roll_out_one_spisode_service_node" pkg="baxter_as_gps_ros_agent" type="make_action_and_roll_out_one_spisode_service.py" launch-prefix="$(arg python_launch_prefix)" />
     <node output='screen' name="sampling_service_node" pkg="baxter_as_gps_ros_agent" type="sampling_service_node.py" launch-prefix="$(arg python_launch_prefix)" args="--config $(arg config_py)" />
     <node output='screen' name="sensor_data_time_series_publishing_service_node" pkg="baxter_as_gps_ros_agent" type="sensor_data_time_series_publishing_service_node.py" launch-prefix="$(arg python_launch_prefix)" args="--config $(arg config_py)" />
 </launch>

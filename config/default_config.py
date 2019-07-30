@@ -85,7 +85,7 @@ def get_RosTopicFilteringScheme_and_time_series_remapping_array(datatypes, frequ
 
 
 
-def process_rosbag_to_SampleResult(rosbag_path, datatypes, frequency, offset_points, target_points):
+def process_rosbag_to_SampleResult(rosbag_path, datatypes, frequency, offset_points, target_points, episode_start_time_in_sec=None, episode_end_time_in_sec=None):
     assert(offset_points.shape[0] == 3)
     assert(target_points.shape[0] == 3)
     assert(offset_points.shape[1] == target_points.shape[1])
@@ -106,7 +106,7 @@ def process_rosbag_to_SampleResult(rosbag_path, datatypes, frequency, offset_poi
     datatypes_shape = joint_based_datatypes_shape+other_datatypes_shape
 
     ofrt = OfflineRostopicsToTimeseries(tfc) 
-    t, mat = ofrt.get_timeseries_mat(rosbag_path)
+    t, mat = ofrt.get_timeseries_mat(rosbag_path, episode_start_time_in_sec, episode_end_time_in_sec)
 
     T = mat.shape[0]
     datatypes_falttened = np.split(mat, indices_or_sections=np.cumsum(datatypes_size)[:-1], axis=1)

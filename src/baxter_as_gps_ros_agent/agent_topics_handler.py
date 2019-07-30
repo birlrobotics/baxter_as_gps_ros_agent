@@ -99,10 +99,14 @@ class AgentTopicsHandler(object):
             sensor_time_series_topic = time_series_topic_name,
         )
         resp = self.make_action_and_rollout_one_episode_service.call(req)
-
+        start_time_in_sec = resp.episode_start_time_in_sec
+        end_time_in_sec = resp.episode_end_time_in_sec
 
         # stop sampling
-        req = RecordSensorsToRosbagThenReturnSampleRequest()
+        req = RecordSensorsToRosbagThenReturnSampleRequest(
+            episode_start_time_in_sec=start_time_in_sec,
+            episode_end_time_in_sec=end_time_in_sec, 
+        )
         resp = self.sampling_service.call(req)
         
         sample_result = resp.sample_result
@@ -111,8 +115,6 @@ class AgentTopicsHandler(object):
         # stop sensor data publishing
         req = CollectSensorDataThenPublishItAsTimeSeriesRequest()
         resp = self.sensor_data_time_series_publishing_service(req)
-
-        pdb.set_trace()
 
     def _position_command_callback(self, position_command):
         rospy.logdebug('receive position command: %s'%position_command)
