@@ -106,6 +106,7 @@ class AgentTopicsHandler(object):
         req = RecordSensorsToRosbagThenReturnSampleRequest(
             episode_start_time_in_sec=start_time_in_sec,
             episode_end_time_in_sec=end_time_in_sec, 
+            T=trial_command.T,
         )
         resp = self.sampling_service.call(req)
         

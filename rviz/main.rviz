@@ -57,7 +57,7 @@ Visualization Manager:
       Marker Topic: visualization_marker_array
       Name: MarkerArray
       Namespaces:
-        {}
+        ee_points: true
       Queue Size: 100
       Value: true
     - Alpha: 1
@@ -353,221 +353,19 @@ Visualization Manager:
       Value: true
       Visual Enabled: true
     - Class: rviz/TF
-      Enabled: true
+      Enabled: false
       Frame Timeout: 15
       Frames:
         All Enabled: true
-        base:
-          Value: true
-        collision_head_link_1:
-          Value: true
-        collision_head_link_2:
-          Value: true
-        display:
-          Value: true
-        dummyhead1:
-          Value: true
-        head:
-          Value: true
-        head_camera:
-          Value: true
-        l_gripper_l_finger:
-          Value: true
-        l_gripper_l_finger_tip:
-          Value: true
-        l_gripper_r_finger:
-          Value: true
-        l_gripper_r_finger_tip:
-          Value: true
-        left_arm_itb:
-          Value: true
-        left_arm_mount:
-          Value: true
-        left_gripper:
-          Value: true
-        left_gripper_base:
-          Value: true
-        left_hand:
-          Value: true
-        left_hand_accelerometer:
-          Value: true
-        left_hand_camera:
-          Value: true
-        left_hand_camera_axis:
-          Value: true
-        left_hand_range:
-          Value: true
-        left_lower_elbow:
-          Value: true
-        left_lower_forearm:
-          Value: true
-        left_lower_shoulder:
-          Value: true
-        left_torso_itb:
-          Value: true
-        left_upper_elbow:
-          Value: true
-        left_upper_elbow_visual:
-          Value: true
-        left_upper_forearm:
-          Value: true
-        left_upper_forearm_visual:
-          Value: true
-        left_upper_shoulder:
-          Value: true
-        left_wrist:
-          Value: true
-        pedestal:
-          Value: true
-        r_gripper_l_finger:
-          Value: true
-        r_gripper_l_finger_tip:
-          Value: true
-        r_gripper_r_finger:
-          Value: true
-        r_gripper_r_finger_tip:
-          Value: true
-        right_arm_itb:
-          Value: true
-        right_arm_mount:
-          Value: true
-        right_gripper:
-          Value: true
-        right_gripper_base:
-          Value: true
-        right_hand:
-          Value: true
-        right_hand_accelerometer:
-          Value: true
-        right_hand_camera:
-          Value: true
-        right_hand_camera_axis:
-          Value: true
-        right_hand_range:
-          Value: true
-        right_lower_elbow:
-          Value: true
-        right_lower_forearm:
-          Value: true
-        right_lower_shoulder:
-          Value: true
-        right_torso_itb:
-          Value: true
-        right_upper_elbow:
-          Value: true
-        right_upper_elbow_visual:
-          Value: true
-        right_upper_forearm:
-          Value: true
-        right_upper_forearm_visual:
-          Value: true
-        right_upper_shoulder:
-          Value: true
-        right_wrist:
-          Value: true
-        screen:
-          Value: true
-        sonar_ring:
-          Value: true
-        torso:
-          Value: true
-        world:
-          Value: true
       Marker Scale: 1
       Name: TF
       Show Arrows: true
       Show Axes: true
       Show Names: false
       Tree:
-        world:
-          base:
-            collision_head_link_1:
-              {}
-            collision_head_link_2:
-              {}
-            torso:
-              head:
-                dummyhead1:
-                  {}
-                head_camera:
-                  {}
-                screen:
-                  display:
-                    {}
-              left_arm_mount:
-                left_upper_shoulder:
-                  left_lower_shoulder:
-                    left_upper_elbow:
-                      left_lower_elbow:
-                        left_upper_forearm:
-                          left_arm_itb:
-                            {}
-                          left_lower_forearm:
-                            left_wrist:
-                              left_hand:
-                                left_gripper_base:
-                                  l_gripper_l_finger:
-                                    l_gripper_l_finger_tip:
-                                      {}
-                                  l_gripper_r_finger:
-                                    l_gripper_r_finger_tip:
-                                      {}
-                                  left_gripper:
-                                    {}
-                                left_hand_accelerometer:
-                                  {}
-                                left_hand_camera:
-                                  {}
-                                left_hand_camera_axis:
-                                  {}
-                                left_hand_range:
-                                  {}
-                        left_upper_forearm_visual:
-                          {}
-                    left_upper_elbow_visual:
-                      {}
-              left_torso_itb:
-                {}
-              pedestal:
-                {}
-              right_arm_mount:
-                right_upper_shoulder:
-                  right_lower_shoulder:
-                    right_upper_elbow:
-                      right_lower_elbow:
-                        right_upper_forearm:
-                          right_arm_itb:
-                            {}
-                          right_lower_forearm:
-                            right_wrist:
-                              right_hand:
-                                right_gripper_base:
-                                  r_gripper_l_finger:
-                                    r_gripper_l_finger_tip:
-                                      {}
-                                  r_gripper_r_finger:
-                                    r_gripper_r_finger_tip:
-                                      {}
-                                  right_gripper:
-                                    {}
-                                right_hand_accelerometer:
-                                  {}
-                                right_hand_camera:
-                                  {}
-                                right_hand_camera_axis:
-                                  {}
-                                right_hand_range:
-                                  {}
-                        right_upper_forearm_visual:
-                          {}
-                    right_upper_elbow_visual:
-                      {}
-              right_torso_itb:
-                {}
-              sonar_ring:
-                {}
+        {}
       Update Interval: 0
-      Value: true
+      Value: false
   Enabled: true
   Global Options:
     Background Color: 48; 48; 48
@@ -593,7 +391,7 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz/Orbit
-      Distance: 3.54455805
+      Distance: 3.57691336
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.0599999987
         Stereo Focal Distance: 1
@@ -608,10 +406,10 @@ Visualization Manager:
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.00999999978
-      Pitch: 0.395398378
+      Pitch: -0.15960151
       Target Frame: <Fixed Frame>
       Value: Orbit (rviz)
-      Yaw: 5.74858093
+      Yaw: 6.15858793
     Saved: ~
 Window Geometry:
   Displays:
@@ -629,5 +427,5 @@ Window Geometry:
   Views:
     collapsed: false
   Width: 1200
-  X: 65
-  Y: 60
+  X: 733
+  Y: 113

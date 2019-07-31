@@ -43,6 +43,7 @@ def cb(req):
 
         episode_start_time_in_sec = req.episode_start_time_in_sec
         episode_end_time_in_sec = req.episode_end_time_in_sec
+        T = req.T
 
         # Note, we should use saved_req instead of req here
         # we set req to be None here so no misuse is possible
@@ -60,6 +61,7 @@ def cb(req):
                 saved_req.frequency,
                 np.array(saved_req.ee_points).reshape((3,-1)),
                 np.array(saved_req.ee_points_tgt).reshape((3,-1)), 
+                T,
                 episode_start_time_in_sec,
                 episode_end_time_in_sec,
             )
