@@ -7,6 +7,7 @@ import tempfile
 import numpy as np
 import sys
 import baxter_as_gps_ros_agent.util as util
+from baxter_as_gps_ros_agent.debug_util import sample_result_rviz_plotter
 
 rosbag_proc = None
 rosbag_path = None
@@ -66,9 +67,15 @@ def cb(req):
                 episode_end_time_in_sec,
             )
 
+
+            sample_result_rviz_plotter.delete_prev_markers()
+            sample_result_rviz_plotter.plot_target_end_point(np.array(saved_req.ee_points_tgt).reshape((3,-1)))
+            sample_result_rviz_plotter.plot(sample_result)
+
             rosbag_proc = None
             rosbag_path = None
             saved_req = None
+
         return RecordSensorsToRosbagThenReturnSampleResponse(sample_result=sample_result)
         
 

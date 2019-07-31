@@ -166,10 +166,14 @@ def _setup_other_datatype_filter(tfc, other_datatypes):
     return other_datatypes_size, other_datatypes_shape
 
 def _setup_joint_based_datatype_filter(tfc, joint_based_datatypes, offset_points, target_points):
+    # NOTE: JointBasedEndPointRelatedValuesCalculator assume point matirx is 
+    #  3 x number of points
+    # which is the transpose of the msg end point convention
+    # so we need to transpose it here
     jbeprvc = JointBasedEndPointRelatedValuesCalculator(
         values_to_calculate=joint_based_datatypes,
-        end_point_offset=offset_points,
-        target_end_point=target_points,
+        end_point_offset=offset_points.T,
+        target_end_point=target_points.T,
     )
     test_return = jbeprvc.get_calculation_result(np.array([0.3]*7), np.array([0.3]*7))
 
