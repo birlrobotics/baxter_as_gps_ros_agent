@@ -41,7 +41,7 @@ class LinearGaussianActionCalculator(BaseActionCalculator):
         k = self.k[t]
 
         u = np.matmul(K, x-nominal_x) + k + nominal_u
-        return u
+        return u.flatten()
 
 if __name__ == '__main__':
     K = np.random.rand(100, 7,7)

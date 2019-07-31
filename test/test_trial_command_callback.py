@@ -40,11 +40,7 @@ if __name__ == '__main__':
         [0.1, 0.2, 0.3],
         [-0.1, -0.2, -0.3],
     ])
-    with open(
-        os.path.join(
-            os.path.dirname(os.path.realpath(__file__)), 'trial_commnd_msg.pkl'
-        ),
-        'rb') as f:
+    with open(os.path.join( os.path.dirname(os.path.realpath(__file__)), 'trial_commnd_msg.pkl'), 'rb') as f:
         saved_trial_command_msg = pickle.load(f)
 
     '''
@@ -58,6 +54,11 @@ if __name__ == '__main__':
     )
     '''
     msg = saved_trial_command_msg
+
+    with open(os.path.join(os.path.dirname(os.path.realpath(__file__)), 'caffe_msg.pkl'), 'rb') as f:
+        controller_msg = pickle.load(f)
+
+    msg.controller = controller_msg
 
     rospy.sleep(1)
     pub.publish(msg)

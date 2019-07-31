@@ -44,8 +44,8 @@ def cb(req):
         dim_of_u = req.controller.caffe.dU
         dim_of_bias = req.controller.caffe.dim_bias
         action_calculator = CaffeBasedNeuralNetworkActionCalculator(
-            obs_scale = np.array(req.controller.caffe.scale).reshape((dim_bias, dim_bias)),
-            osb_bias = np.array(req.controller.caffe.bias),
+            obs_scale = np.array(req.controller.caffe.scale).reshape((dim_of_bias, dim_of_bias)),
+            obs_bias = np.array(req.controller.caffe.bias),
             net_param_string = req.controller.caffe.net_param,
             action_noise = np.array(req.controller.caffe.noise).reshape((T, dim_of_u)),
         )
