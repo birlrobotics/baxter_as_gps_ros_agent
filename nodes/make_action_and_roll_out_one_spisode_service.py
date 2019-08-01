@@ -90,6 +90,10 @@ def topic_cb(msg):
         time_lapsed = now_time_in_sec-start_time_in_sec
         if time_lapsed >= duration_in_sec:
             sensor_time_series_sub.unregister()
+
+            action = [0,0,0,0,0,0,0]
+            baxter_right_arm.set_joint_torques(dict(zip(baxter_right_arm.joint_names(), action)))
+
             end_time_in_sec = now_time_in_sec 
             event_episode_is_done.set()
             return

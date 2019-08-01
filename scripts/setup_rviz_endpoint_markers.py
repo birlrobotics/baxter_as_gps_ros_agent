@@ -5,9 +5,25 @@ import rospy
 from visualization_msgs.msg import Marker, MarkerArray
 from geometry_msgs.msg import Pose, Point, Vector3
 from std_msgs.msg import ColorRGBA, Header
+import sys
+import os
+import imp
+import roslib
 
-ee_points = [0.02, -0.025, 0.05, 0.02, -0.025, -0.05, 0.02, 0.05, 0.0]
-ee_points_tgt = [0.9695275033370298, 0.1532198499966648, -0.27622060450773345, 0.9817030561529546, 0.13899199753738836, -0.17798963114381072, 0.9432710818948555, 0.0786839966256189, -0.23286155821632049]
+roslib.load_manifest('gps_agent_pkg')
+import gps_agent_pkg
+
+sys.path.append(os.path.join(
+    os.path.join(gps_agent_pkg.__path__[0], '..', '..', '..', '..'),
+    'python',
+))
+
+hyperparams = imp.load_source('hyperparams', '/home/sklaw/Coding/birl_gps/gps/experiments/baxter_badmm_example/hyperparams.py')
+
+
+ee_points = hyperparams.EE_POINTS.flatten()
+ee_points_tgt = hyperparams.agent['ee_points_tgt'][0]
+
 point_num = len(ee_points)/3
 
 ee_point_list = []

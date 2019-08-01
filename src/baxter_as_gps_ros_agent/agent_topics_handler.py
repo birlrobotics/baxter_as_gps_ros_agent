@@ -2,17 +2,11 @@ import pdb
 
 import rospy
 
-# The original GPS package doesn't use catkin.
-# So the folloing lines are necessary if we want
-#   to import packages from gps_agent_pkg
-import roslib
-roslib.load_manifest('gps_agent_pkg')
-
 import os
 import gps_agent_pkg
 import sys
 sys.path.append(os.path.join(
-    os.sep.join(gps_agent_pkg.__path__[0].split(os.sep)[:-4]),
+    os.sep.join(gps_agent_pkg.__path__[0].split(os.sep)[:-7]),
     'python',
 ))
 from gps.proto.gps_pb2 import (

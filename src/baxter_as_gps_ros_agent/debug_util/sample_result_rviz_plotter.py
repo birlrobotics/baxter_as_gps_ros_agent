@@ -17,28 +17,37 @@ from std_msgs.msg import ColorRGBA, Header
 import rospy
 import numpy as np
 
+frame_id = 'base'
+def set_frame_id(link):
+    global frame_id 
+    frame_id = link
+
 def plot_target_end_point(ee_points_tgt):
     _send_rviz_pose_array(ee_points_tgt, color=ColorRGBA(*[0, 0, 1, 1]))
 
-def plot(sample_result):
+def plot(sample_result, ee_points_tgt=None):
     for i in sample_result.sensor_data:
         data_type=i.data_type
         shape=i.shape
-        data=i.data
+        data=np.array(i.data).reshape(shape)
         if data_type == END_EFFECTOR_POINTS:
+            if ee_points_tgt is not None:
+                data += ee_points_tgt 
             number_of_points = shape[1]/3
             for j in range(number_of_points):
-                _send_rviz_pose_array(data.reshape(shape)[:, 3*j:3*j+3], color=ColorRGBA(*[0, 1, 0, 1])) 
+                _send_rviz_pose_array(data[:, 3*j:3*j+3], color=ColorRGBA(*[0, 1, 0, 1])) 
         elif data_type == END_EFFECTOR_POSITIONS:
             _send_rviz_pose_array(data.reshape(shape), color=ColorRGBA(*[1, 0, 0, 1]))
 
 
 marker_last_id = 0
+marker_pub = None
 def delete_prev_markers():
-    global marker_last_id 
+    global marker_last_id, marker_pub
 
-    marker_pub = rospy.Publisher('/visualization_marker_array', MarkerArray, queue_size=None)
-    rospy.sleep(1)
+    if marker_pub is None:
+        marker_pub = rospy.Publisher('/visualization_marker_array', MarkerArray, queue_size=None)
+        rospy.sleep(1)
 
     # delete previous batch
     marker_array = MarkerArray()
@@ -49,10 +58,11 @@ def delete_prev_markers():
     marker_last_id = 0
 
 def _send_rviz_pose_array(position_matrix, quaternion_matrix=None, color=None):
-    global marker_last_id 
+    global marker_last_id, frame_id, marker_pub
 
-    marker_pub = rospy.Publisher('/visualization_marker_array', MarkerArray, queue_size=None)
-    rospy.sleep(1)
+    if marker_pub is None:
+        marker_pub = rospy.Publisher('/visualization_marker_array', MarkerArray, queue_size=None)
+        rospy.sleep(1)
     number_of_marker = position_matrix.shape[0]
 
     if quaternion_matrix is None:
@@ -68,7 +78,7 @@ def _send_rviz_pose_array(position_matrix, quaternion_matrix=None, color=None):
             ns='plot_sample_result',
             header=Header(
                 stamp=rospy.Time(),
-                frame_id='/base',
+                frame_id=frame_id,
             ),
             type=Marker.ARROW,
             pose=Pose(
