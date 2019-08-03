@@ -70,7 +70,7 @@ def cb(req):
 
             sample_result_rviz_plotter.delete_prev_markers()
             sample_result_rviz_plotter.plot_target_end_point(np.array(saved_req.ee_points_tgt).reshape((3,-1)))
-            sample_result_rviz_plotter.plot(sample_result)
+            sample_result_rviz_plotter.plot(sample_result, saved_req.ee_points_tgt)
 
             rosbag_proc = None
             rosbag_path = None
@@ -80,8 +80,8 @@ def cb(req):
         
 
 if __name__ == '__main__':
+    rospy.init_node('sampling_service_service_node', log_level=rospy.DEBUG)
     config = util.get_config()
 
-    rospy.init_node('sampling_service_service_node', log_level=rospy.DEBUG)
     server = rospy.Service('/sampling_service_for_gps_baxter', RecordSensorsToRosbagThenReturnSample, cb)
     rospy.spin()

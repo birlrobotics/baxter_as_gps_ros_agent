@@ -11,7 +11,6 @@ if __name__ == '__main__':
     right_arm = baxter_interface.limb.Limb("right")
 
     rs = baxter_interface.RobotEnable(CHECK_VERSION)
-    init_state = rs.state().enabled
     rospy.loginfo("Enabling robot... ")
     rs.enable()
 
@@ -20,6 +19,3 @@ if __name__ == '__main__':
     right_arm.move_to_neutral()
     rospy.sleep(1)
 
-    if not init_state:
-        rospy.loginfo("Disabling robot...")
-        rs.disable()

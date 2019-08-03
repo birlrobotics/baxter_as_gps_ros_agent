@@ -13,12 +13,14 @@ def get_config():
     args, unknown = parser.parse_known_args(removed_ros_args)
 
     if args.config is None:
+        rospy.logerr("config is missing")
         parser.error("config is missing")
 
     dir_of_this_script = os.path.dirname(os.path.realpath(__file__))
     config_path = os.path.join(dir_of_this_script, '..', '..', 'config', args.config)
 
     if not os.path.isfile(config_path):
+        rospy.logerr("file %s doesn't exist"%config_path)
         parser.error("file %s doesn't exist"%config_path)
 
     

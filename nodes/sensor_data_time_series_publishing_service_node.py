@@ -41,8 +41,8 @@ def cb(req):
         return CollectSensorDataThenPublishItAsTimeSeriesResponse()
 
 if __name__ == '__main__':
+    rospy.init_node('sensor_data_time_series_publishing_service_node', log_level=rospy.DEBUG)
     config = util.get_config()
 
-    rospy.init_node('sensor_data_time_series_publishing_service_node', log_level=rospy.DEBUG)
     server = rospy.Service('CollectSensorDataThenPublishItAsTimeSeries_service', CollectSensorDataThenPublishItAsTimeSeries, cb)
     rospy.spin()
