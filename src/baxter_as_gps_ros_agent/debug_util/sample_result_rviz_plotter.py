@@ -1,4 +1,5 @@
 import pdb
+import colorsys
 from gps.proto.gps_pb2 import (
     ACTION,
     JOINT_ANGLES,
@@ -34,10 +35,14 @@ def plot(sample_result, ee_points_tgt=None):
             if ee_points_tgt is not None:
                 data += ee_points_tgt 
             number_of_points = shape[1]/3
+            N = number_of_points
+            HSV_tuples = [(x*1.0/N, 0.5, 0.5) for x in range(N)]
+            RGB_tuples = map(lambda x: colorsys.hsv_to_rgb(*x)+(1,), HSV_tuples)
             for j in range(number_of_points):
-                _send_rviz_pose_array(data[:, 3*j:3*j+3], color=ColorRGBA(*[0, 1, 0, 1])) 
+                _send_rviz_line_strip(data[:, 3*j:3*j+3], color=ColorRGBA(*RGB_tuples[j])) 
         elif data_type == END_EFFECTOR_POSITIONS:
-            _send_rviz_pose_array(data.reshape(shape), color=ColorRGBA(*[1, 0, 0, 1]))
+            pass
+            #_send_rviz_line_strip(data.reshape(shape), color=ColorRGBA(*[1, 1, 1, 1]))
 
 
 marker_last_id = 0
@@ -56,6 +61,38 @@ def delete_prev_markers():
         marker_array.markers.append(marker)
     marker_pub.publish(marker_array)
     marker_last_id = 0
+
+def _send_rviz_line_strip(point_matrix, color=None):
+    global marker_last_id, frame_id, marker_pub
+    if marker_pub is None:
+        marker_pub = rospy.Publisher('/visualization_marker_array', MarkerArray, queue_size=None)
+        rospy.sleep(1)
+
+    if color is None:
+        color = ColorRGBA(*[0, 1, 0, 1])
+
+    points = []
+    for i in range(point_matrix.shape[0]):
+        points.append(Point(*point_matrix[i]))
+
+
+    marker_array = MarkerArray()
+    marker = Marker(
+        id=marker_last_id,
+        ns='plot_sample_result',
+        header=Header(
+            stamp=rospy.Time(),
+            frame_id=frame_id,
+        ),
+        type=Marker.LINE_STRIP,
+        points=points,
+        color=color,
+        scale=Vector3(0.01,0.01,0.01),
+        action=Marker.ADD
+    )
+    marker_last_id += 1
+    marker_array.markers.append(marker)
+    marker_pub.publish(marker_array)
 
 def _send_rviz_pose_array(position_matrix, quaternion_matrix=None, color=None):
     global marker_last_id, frame_id, marker_pub
