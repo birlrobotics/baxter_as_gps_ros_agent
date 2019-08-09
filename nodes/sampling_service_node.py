@@ -80,7 +80,7 @@ def cb(req):
         
 
 if __name__ == '__main__':
-    rospy.init_node('sampling_service_service_node', log_level=rospy.DEBUG)
+    rospy.init_node('sampling_service_service_node', log_level=rospy.INFO)
     config = util.get_config()
 
     server = rospy.Service('/sampling_service_for_gps_baxter', RecordSensorsToRosbagThenReturnSample, cb)

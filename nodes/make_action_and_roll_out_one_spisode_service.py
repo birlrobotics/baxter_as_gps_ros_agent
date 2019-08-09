@@ -94,6 +94,8 @@ def topic_cb(msg):
             action = [0,0,0,0,0,0,0]
             baxter_right_arm.set_joint_torques(dict(zip(baxter_right_arm.joint_names(), action)))
 
+            baxter_right_arm.set_joint_positions(baxter_right_arm.joint_angles())
+
             end_time_in_sec = now_time_in_sec 
             event_episode_is_done.set()
             return
@@ -112,7 +114,7 @@ def topic_cb(msg):
     ))
 
 if __name__ == '__main__':
-    rospy.init_node('make_action_and_rollout_one_episode_service_node', log_level=rospy.DEBUG)
+    rospy.init_node('make_action_and_rollout_one_episode_service_node', log_level=rospy.INFO)
 
     # setup baxter right arm
     rs = baxter_interface.RobotEnable(CHECK_VERSION)

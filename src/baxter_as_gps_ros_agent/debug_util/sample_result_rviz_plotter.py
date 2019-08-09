@@ -24,7 +24,11 @@ def set_frame_id(link):
     frame_id = link
 
 def plot_target_end_point(ee_points_tgt):
-    _send_rviz_pose_array(ee_points_tgt, color=ColorRGBA(*[0, 0, 1, 1]))
+    N = 3
+    HSV_tuples = [(x*1.0/N, 0.5, 0.5) for x in range(N)]
+    RGB_tuples = map(lambda x: colorsys.hsv_to_rgb(*x)+(1,), HSV_tuples)
+    for i in range(3):
+        _send_rviz_pose_array(ee_points_tgt[i, :].reshape((1,3)), color=ColorRGBA(*RGB_tuples[i]))
 
 def plot(sample_result, ee_points_tgt=None):
     for i in sample_result.sensor_data:

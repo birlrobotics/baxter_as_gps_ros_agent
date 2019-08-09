@@ -37,7 +37,7 @@ def topic_cb(msg):
     jac = jbeprvc.get_calculation_result(joint_angles, joint_velocities)
 
 if __name__ == '__main__':
-    rospy.init_node('test_baxter_end_point_related_calculation_from_joint_values_node', log_level=rospy.DEBUG)
+    rospy.init_node('test_baxter_end_point_related_calculation_from_joint_values_node', log_level=rospy.INFO)
 
     jbeprvc = JointBasedEndPointRelatedValuesCalculator(
         values_to_calculate = [

@@ -14,6 +14,13 @@ if __name__ == '__main__':
     pos = d['position']
     ori = d['orientation']
 
+    print 'joint angles'
+    ja = right_arm.joint_angles()
+    ja_list = []
+    for j in right_arm.joint_names():
+        ja_list.append(ja[j])
+    print ja_list
+    
     print 'pos'
     print [pos.x, pos.y, pos.z]
     print 'rot mat'
