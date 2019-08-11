@@ -116,9 +116,6 @@ def topic_cb(msg):
 if __name__ == '__main__':
     rospy.init_node('make_action_and_rollout_one_episode_service_node', log_level=rospy.INFO)
 
-    # setup baxter right arm
-    rs = baxter_interface.RobotEnable(CHECK_VERSION)
-    rs.enable()
     baxter_right_arm = baxter_interface.Limb('right')
 
     server = rospy.Service('SetupControllerAndRolloutOneEpisode_service', SetupControllerAndRolloutOneEpisode, cb)

@@ -10,9 +10,7 @@ if __name__ == '__main__':
     left_arm = baxter_interface.limb.Limb("left")
     right_arm = baxter_interface.limb.Limb("right")
 
-    rs = baxter_interface.RobotEnable(CHECK_VERSION)
     rospy.loginfo("Enabling robot... ")
-    rs.enable()
 
     rospy.sleep(1)
     left_arm.move_to_neutral()

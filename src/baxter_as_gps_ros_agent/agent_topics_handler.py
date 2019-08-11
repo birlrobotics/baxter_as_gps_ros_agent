@@ -145,8 +145,6 @@ class AgentTopicsHandler(object):
         import baxter_interface
         from baxter_interface import CHECK_VERSION
 
-        rs = baxter_interface.RobotEnable(CHECK_VERSION)
-        rs.enable()
         left_arm = baxter_interface.Limb('left')
         right_arm = baxter_interface.Limb('right')
 
