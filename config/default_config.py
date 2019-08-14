@@ -1,4 +1,6 @@
 import pdb
+from PIL import Image
+import io
 
 # The original GPS package doesn't use catkin.
 # So the folloing lines are necessary if we want
@@ -25,16 +27,18 @@ from gps.proto.gps_pb2 import (
     END_EFFECTOR_POSITIONS,
     END_EFFECTOR_ROTATIONS,
     END_EFFECTOR_JACOBIANS,
+    RGB_IMAGE,
 )
 from gps_agent_pkg.msg import SampleResult, DataType
 from rostopics_to_timeseries import RosTopicFilteringScheme, TopicMsgFilter, OfflineRostopicsToTimeseries
-from sensor_msgs.msg import JointState
+from sensor_msgs.msg import JointState, CompressedImage
 from baxter_as_gps_ros_agent import JointBasedEndPointRelatedValuesCalculator
 from baxter_as_gps_ros_agent.msg import BaxterRightArmAction
 import numpy as np
 from operator import itemgetter
 from gps_agent_pkg.msg import SampleResult
 from baxter_as_gps_ros_agent import CONSTANT
+import subprocess
 
 JOINT_BASED_DATATYPES = set([
     JOINT_ANGLES,
@@ -56,6 +60,8 @@ def get_topic_names_that_will_be_recorded_into_rosbag(datatypes):
             topics.add('/robot/joint_states')
         elif i == ACTION:
             topics.add(CONSTANT.action_topic)
+        elif i == RGB_IMAGE:
+            topics.add('/gps_rgb_camera/image_raw/compressed')
         else:
             raise Exception('datatype not supported yet')
     return list(topics)
@@ -159,6 +165,43 @@ def _setup_other_datatype_filter(tfc, other_datatypes):
                 "/baxter_right_arm_torque_action", 
                 BaxterRightArmAction,
                 ActionFilter,
+            )
+        elif i == RGB_IMAGE:
+            try:
+                height = int(subprocess.check_output('timeout 1s rostopic echo /gps_rgb_camera/camera_info/height -n 1', shell=True).split()[0])
+            except subprocess.CalledProcessError:
+                raise Exception("rostopic echo /gps_rgb_camera/camera_info/height failed")
+            try:
+                width = int(subprocess.check_output('timeout 1s rostopic echo /gps_rgb_camera/camera_info/width -n 1', shell=True).split()[0])
+            except subprocess.CalledProcessError:
+                raise Exception("rostopic echo /gps_rgb_camera/camera_info/width failed")
+
+            image_vector_size = height*width*3
+
+            other_datatypes_size.append(image_vector_size)
+            other_datatypes_shape.append((image_vector_size,))
+
+            class CompressedImageFilter(TopicMsgFilter):
+                target_joints = ['right_s0', 'right_s1', 'right_e0', 'right_e1', 'right_w0', 'right_w1', 'right_w2']
+                def __init__(self):
+                    super(CompressedImageFilter, self).__init__()
+
+                @staticmethod
+                def vector_size():
+                    return image_vector_size
+
+                @staticmethod
+                def vector_meaning():
+                    return ['N/A']*image_vector_size
+
+                def convert(self, msg):
+                    image = Image.open(io.BytesIO(msg.data))
+                    image_mat = np.array(image)
+                    return image_mat.flatten()
+            tfc.add_filter(
+                "/gps_rgb_camera/image_raw/compressed", 
+                CompressedImage,
+                CompressedImageFilter,
             )
         else:
             raise Exception('datatype %s not supported yet'%i)
