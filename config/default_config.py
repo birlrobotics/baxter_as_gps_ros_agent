@@ -168,11 +168,11 @@ def _setup_other_datatype_filter(tfc, other_datatypes):
             )
         elif i == RGB_IMAGE:
             try:
-                height = int(subprocess.check_output('timeout 1s rostopic echo /gps_rgb_camera/camera_info/height -n 1', shell=True).split()[0])
+                height = int(subprocess.check_output('timeout 3s rostopic echo /gps_rgb_camera/camera_info/height -n 1', shell=True).split()[0])
             except subprocess.CalledProcessError:
                 raise Exception("rostopic echo /gps_rgb_camera/camera_info/height failed")
             try:
-                width = int(subprocess.check_output('timeout 1s rostopic echo /gps_rgb_camera/camera_info/width -n 1', shell=True).split()[0])
+                width = int(subprocess.check_output('timeout 3s rostopic echo /gps_rgb_camera/camera_info/width -n 1', shell=True).split()[0])
             except subprocess.CalledProcessError:
                 raise Exception("rostopic echo /gps_rgb_camera/camera_info/width failed")
 
