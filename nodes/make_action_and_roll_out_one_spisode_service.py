@@ -7,10 +7,12 @@ import numpy as np
 from rostopics_to_timeseries.msg import Timeseries
 from baxter_as_gps_ros_agent.msg import BaxterRightArmAction
 from threading import Event
-from gps.proto.gps_pb2 import LIN_GAUSS_CONTROLLER, CAFFE_CONTROLLER
+from gps.proto.gps_pb2 import LIN_GAUSS_CONTROLLER, CAFFE_CONTROLLER, POLICY_PKL_FILE
 from baxter_as_gps_ros_agent import LinearGaussianActionCalculator, CaffeBasedNeuralNetworkActionCalculator
 import baxter_interface
 from baxter_interface import CHECK_VERSION
+import pickle 
+from baxter_as_gps_ros_agent import BaseActionCalculator
 
 event_start_new_episode = Event()
 event_episode_is_done = Event()
@@ -49,6 +51,20 @@ def cb(req):
             net_param_string = req.controller.caffe.net_param,
             action_noise = np.array(req.controller.caffe.noise).reshape((T, dim_of_u)),
         )
+    elif controller_type == POLICY_PKL_FILE:
+        with open(req.controller.pkl_file_path, 'rb') as f:
+            pol = pickle.load(f)
+
+        class TmpActionCalculator(BaseActionCalculator):
+            def get_action(self, episode_t, input_vector):
+                x = None
+                obs = input_vector
+                t = episode_t
+                noise = None
+                return pol.act(x, obs, t, noise)
+
+        action_calculator = TmpActionCalculator()
+
     else:
         raise Exception('controller type %s not supported yet'%controller_type)
 
